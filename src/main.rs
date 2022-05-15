@@ -129,7 +129,9 @@ impl ProgramState {
                     ',' => self.comma(),
                     _ => panic!(),
                 },
-                _ => self.run(node),
+                _ => while self.arr[self.pos] > 0 {
+                    self.run(node);
+                },
             }
         }
     }
