@@ -1,10 +1,15 @@
-use std::ascii;
+use std::io::Read;
+use std::{ascii, io};
 
 fn main() {
     let program = r#"Greatest language ever!
     ++++-+++-++-++[>++++-+++-++-++<-]>."#;
 
     BFInterpreter::interpret(program);
+
+    let echo = ",[.,]";
+
+    BFInterpreter::interpret(echo);
 
     let program = r#">++++++++++>>>+>+[>>>+[-[<<<<<[+<<<<<]>>[[-]>[<<+>+>-]
 <[>+<-]<[>+<-[>+<-[>+<-[>+<-[>+<-[>+<-[>+<-[>+<-[>+<-
@@ -125,7 +130,8 @@ impl BFInterpreter {
     }
 
     fn comma(&mut self) {
-        todo!()
+        let byte = io::stdin().bytes().take(1).next().unwrap().unwrap();
+        self.arr[self.pos] = byte;
     }
 
     pub fn interpret(string: &str) {
@@ -163,7 +169,3 @@ struct Node {
     token: Option<Token>,
     children: Option<Vec<Node>>,
 }
-
-// bf-program : (bf-op | bf-loop)*
-// bf-op      : ">" | "<" | "+" | "-" | "." | ","
-// bf-loop    : "[" (bf-op | bf-loop)* "]"
