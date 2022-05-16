@@ -2,16 +2,18 @@ use std::ascii;
 
 fn main() {
     let program = r#"Greatest language ever!
-++++-+++-++-++[>++++-+++-++-++<-]>."#;
+    ++++-+++-++-++[>++++-+++-++-++<-]>."#;
 
-    // let program = r#"[<]."#;
+    BFInterpreter::interpret(program);
 
-    let tokens = tokenize(program);
-    let parsed = parse(&tokens);
-    let mut prog = ProgramState::new();
+    let program = r#">++++++++++>>>+>+[>>>+[-[<<<<<[+<<<<<]>>[[-]>[<<+>+>-]
+<[>+<-]<[>+<-[>+<-[>+<-[>+<-[>+<-[>+<-[>+<-[>+<-[>+<-
+[>[-]>>>>+>+<<<<<<-[>+<-]]]]]]]]]]]>[<+>-]+>>>>>]<<<<<
+[<<<<<]>>>>>>>[>>>>>]++[-<<<<<]>>>>>>-]+>>>>>]<[>++<-]
+<<<<[<[>+<-]<<<<]>>[->[-]++++++[<++++++++>-]>>>>]<<<<<
+[<[>+>+<<-]>.<<<<<]>.>>>>]"#;
 
-    prog.run(&parsed);
-    // println!("{:?}", parsed)
+    BFInterpreter::interpret(program);
 }
 
 #[derive(Clone, Debug)]
@@ -30,18 +32,16 @@ fn tokenize(a: &str) -> Vec<Token> {
     tokens
 }
 
-fn parse(tokens: &Vec<Token>) -> Node {
+fn parse(tokens: &[Token]) -> Node {
     let mut children = Vec::new();
-
     let mut i = 0;
 
     while i < tokens.len() {
         let token = tokens.get(i).unwrap();
-        // println!("{}", i);
         match token {
             Token { lexeme: '[' } => {
-                let (new, next) = looped(tokens);
-                i = i + next + 1;
+                let (new, next) = looped(i, tokens);
+                i = next + 1;
                 children.push(parse(&new))
             }
             _ => {
@@ -60,32 +60,40 @@ fn parse(tokens: &Vec<Token>) -> Node {
     }
 }
 
-fn looped(tokens: &Vec<Token>) -> (Vec<Token>, usize) {
+fn looped(start: usize, tokens: &[Token]) -> (Vec<Token>, usize) {
     let mut vec = Vec::new();
-    let start = 1;
+    let start = start + 1;
     let mut end = 0;
+    let mut count = 1;
+    for (i, item) in tokens.iter().enumerate().skip(start) {
+        let char = item.lexeme;
 
-    for i in (1..tokens.len()).rev() {
-        if tokens[i].lexeme == ']' {
+        match char {
+            '[' => count += 1,
+            ']' => count -= 1,
+            _ => {}
+        }
+
+        if count == 0 {
             end = i;
             break;
         }
     }
 
-    for i in start..end {
-        vec.push(tokens[i].clone())
+    for token in tokens.iter().take(end).skip(start) {
+        vec.push(token.clone())
     }
     (vec, end)
 }
 
-struct ProgramState {
+struct BFInterpreter {
     arr: [u8; 30_000],
     pos: usize,
 }
 
-impl ProgramState {
+impl BFInterpreter {
     fn new() -> Self {
-        ProgramState {
+        BFInterpreter {
             arr: [0; 30_000],
             pos: 0,
         }
@@ -110,11 +118,23 @@ impl ProgramState {
     fn period(&mut self) {
         let byte = self.arr[self.pos];
         let escaped = ascii::escape_default(byte);
-        print!("{}", escaped);
+        match format!("{}", escaped).as_str() {
+            r#"\n"# => println!(),
+            a => print!("{}", a),
+        }
     }
 
     fn comma(&mut self) {
         todo!()
+    }
+
+    pub fn interpret(string: &str) {
+        let tokens = tokenize(string);
+        let parsed = parse(&tokens);
+        let mut prog = BFInterpreter::new();
+
+        prog.run(&parsed);
+        println!();
     }
 
     fn run(&mut self, nodes: &Node) {
@@ -129,9 +149,11 @@ impl ProgramState {
                     ',' => self.comma(),
                     _ => panic!(),
                 },
-                _ => while self.arr[self.pos] > 0 {
-                    self.run(node);
-                },
+                _ => {
+                    while self.arr[self.pos] > 0 {
+                        self.run(node);
+                    }
+                }
             }
         }
     }
