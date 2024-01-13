@@ -2,14 +2,14 @@ use std::io::Read;
 use std::{ascii, io};
 
 fn main() {
-    let program = r#"Greatest language ever!
-    ++++-+++-++-++[>++++-+++-++-++<-]>."#;
-
-    BFInterpreter::interpret(program);
-
-    let echo = ",[.,]";
-
-    BFInterpreter::interpret(echo);
+    // let program = r#"Greatest language ever!
+    // ++++-+++-++-++[>++++-+++-++-++<-]>."#;
+    //
+    // BFInterpreter::interpret(program);
+    //
+    // let echo = ",[.,]";
+    //
+    // BFInterpreter::interpret(echo);
 
     let program = r#">++++++++++>>>+>+[>>>+[-[<<<<<[+<<<<<]>>[[-]>[<<+>+>-]
 <[>+<-]<[>+<-[>+<-[>+<-[>+<-[>+<-[>+<-[>+<-[>+<-[>+<-
@@ -17,6 +17,8 @@ fn main() {
 [<<<<<]>>>>>>>[>>>>>]++[-<<<<<]>>>>>>-]+>>>>>]<[>++<-]
 <<<<[<[>+<-]<<<<]>>[->[-]++++++[<++++++++>-]>>>>]<<<<<
 [<[>+>+<<-]>.<<<<<]>.>>>>]"#;
+
+    // let program = r#"++++++++++++++++++++++++>++++++++++>,+.<.<[>>+.<.<-]"#;
 
     BFInterpreter::interpret(program);
 }
@@ -113,11 +115,11 @@ impl BFInterpreter {
     }
 
     fn plus(&mut self) {
-        self.arr[self.pos] += 1;
+        self.arr[self.pos] = self.arr[self.pos].overflowing_add(1).0;
     }
 
     fn minus(&mut self) {
-        self.arr[self.pos] -= 1;
+        self.arr[self.pos] = self.arr[self.pos].overflowing_sub(1).0;
     }
 
     fn period(&mut self) {
